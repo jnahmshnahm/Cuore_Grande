@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#f97316">
+<title>Il Cuore Grande</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@500;600;700;800;900&display=swap');
+
+/* ══════════════════════════════════════
+   CSS VARIABLES — base & accessibility
+══════════════════════════════════════ */
+:root {
+  --orange:#f97316; --orange2:#fb923c; --orange-l:#fff7ed;
+  --green:#22c55e;  --green2:#16a34a;  --green-l:#f0fdf4;
+  --blue:#3b82f6;   --blue-l:#eff6ff;
+  --pink:#ec4899;   --pink-l:#fdf2f8;
+  --yellow:#eab308;
+  --purple:#8b5cf6; --purple2:#7c3aed; --purple-l:#f5f3ff;
+  --red:#ef4444;    --teal:#14b8a6;
+  --bg:#fffbf5; --card:#fff; --text:#1c1917; --muted:#78716c; --border:#e7e5e4;
+  --nav-h:64px; --safe-b:env(safe-area-inset-bottom,0px);
+  --bottom-gap:calc(var(--nav-h) + var(--safe-b) + 16px);
+  --font-main:'Nunito',sans-serif;
+  --font-title:'Fredoka One',cursive;
+  --fs-body:1rem; --fs-big:1.1rem; --btn-min:80px;
+  --radius:20px; --focus-ring:0 0 0 4px rgba(249,115,22,.45);
+}
+
+/* ── HIGH CONTRAST MODE ── */
+body.hc {
+  --bg:#000; --card:#111; --text:#fff; --muted:#ccc; --border:#555;
+  --orange:#ffcc00; --orange2:#ffd633; --orange-l:#222;
+  --green:#00ff88;  --green-l:#002211;
+  --purple:#cc99ff; --purple-l:#220044;
+  --red:#ff4444;
+}
+body.hc .home-hero { background: #111 !important; }
+body.hc .ob-sky    { background: #111 !important; }
+
+/* ── BIG TEXT MODE ── */
+body.bigtext { --fs-body:1.25rem; --fs-big:1.4rem; --btn-min:100px; }
+body.bigtext .act-btn   { font-size:1.1rem; min-height:var(--btn-min); }
+body.bigtext .panel-sit { font-size:1.15rem; }
+body.bigtext .bubble    { font-size:1rem; }
+
+/* ── DYSLEXIA FONT ── */
+@font-face {
+  font-family:'Lexie';
+  src:url('https://fonts.cdnfonts.com/css/lexie-readable') format('woff2');
+}
+body.dyslexia { --font-main:'Comic Sans MS','Trebuchet MS',sans-serif; letter-spacing:.04em; line-height:1.9; }
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+body.no-motion *,body.no-motion *::before,body.no-motion *::after { animation:none!important; transition:none!important; }
+
+/* ── SIMPLE MODE (autism/cognitive) ── */
+body.simple .act-grid { grid-template-columns:1fr!important; }
+body.simple .act-btn  { min-height:110px; font-size:1.1rem; border-width:4px; }
+body.simple .bubble   { font-size:1rem; padding:14px 18px; }
+body.simple .panel-sit{ font-size:1.05rem; }
+body.simple .social-rule { display:flex!important; }
+
+/* ── FOCUS VISIBLE (keyboard/switch access) ── */
+:focus-visible { outline:4px solid var(--orange); outline-offset:3px; }
+
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html,body { width:100%; height:100%; overflow:hidden; font-family:var(--font-main); background:#ddd; color:var(--text); overscroll-behavior:none; }
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+#app { width:100%; height:100%; max-width:480px; margin:0 auto; position:relative; overflow:hidden; background:var(--bg); box-shadow:0 0 60px rgba(0,0,0,.18); }
+
+/* ══════════════════════════════════════
+   SCREENS — each manages its own scroll
+══════════════════════════════════════ */
+.screen { position:absolute; inset:0; opacity:0; pointer-events:none; transition:opacity .38s ease,transform .38s cubic-bezier(.4,0,.2,1); transform:translateY(20px); }
+.screen.active { opacity:1; pointer-events:all; transform:translateY(0); }
+.screen.exit   { opacity:0; transform:translateY(-18px); }
+
+/* ══════════════════════════════════════
+   ONBOARDING
+══════════════════════════════════════ */
+#screen-onboard { overflow-y:auto; -webkit-overflow-scrolling:touch; background:linear-gradient(165deg,#fff7ed,#fef3c7 45%,#dcfce7); display:flex; flex-direction:column; align-items:center; padding:0 24px calc(48px + var(--safe-b)); }
+.ob-sky { position:relative; width:calc(100% + 48px); margin-left:-24px; height:170px; flex-shrink:0; background:linear-gradient(180deg,#bfdbfe,#dbeafe); border-radius:0 0 60% 60%/0 0 36px 36px; overflow:hidden; margin-bottom:-24px; }
+.ob-sun { position:absolute; top:14px; right:24px; width:60px; height:60px; background:radial-gradient(circle,#fde047 40%,#fef08a44 70%,transparent 100%); border-radius:50%; animation:sunP 4s ease-in-out infinite; }
+@keyframes sunP { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+.ob-cloud { position:absolute; background:#fff; border-radius:50px; opacity:.85; }
+.ob-cloud::before,.ob-cloud::after { content:''; position:absolute; background:#fff; border-radius:50%; }
+.c1{width:80px;height:26px;top:28px;left:14px}.c1::before{width:40px;height:40px;top:-20px;left:8px}.c1::after{width:28px;height:28px;top:-14px;left:36px}
+.c2{width:60px;height:20px;top:52px;left:128px;animation:cF 5s ease-in-out infinite}.c2::before{width:30px;height:30px;top:-16px;left:6px}.c2::after{width:22px;height:22px;top:-12px;left:26px}
+@keyframes cF{0%,100%{transform:translateX(0)}50%{transform:translateX(7px)}}
+.ob-mascot { font-size:5rem; display:block; position:relative; z-index:2; animation:mascotB 2.5s ease-in-out infinite; cursor:pointer; text-align:center; margin-bottom:4px; filter:drop-shadow(0 5px 16px rgba(249,115,22,.2)); }
+@keyframes mascotB { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-11px) rotate(3deg)} }
+.ob-title { font-family:var(--font-title); font-size:2.3rem; color:var(--orange); text-align:center; margin-bottom:4px; }
+.ob-sub   { font-size:.95rem; font-weight:700; color:var(--muted); text-align:center; margin-bottom:24px; }
+.ob-label { font-size:.78rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:8px; }
+.ob-input { width:100%; padding:14px 18px; border:2.5px solid var(--border); border-radius:18px; font-family:var(--font-main); font-size:1.1rem; font-weight:800; color:var(--text); background:var(--card); outline:none; transition:border-color .2s; margin-bottom:16px; }
+.ob-input:focus { border-color:var(--orange); box-shadow:var(--focus-ring); }
+.ob-avatars { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:20px; }
+.av-btn { font-size:2rem; padding:10px; border-radius:16px; border:3px solid transparent; background:var(--card); cursor:pointer; transition:all .2s; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.av-btn:hover { transform:scale(1.1); }
+.av-btn.picked { border-color:var(--orange); background:var(--orange-l); transform:scale(1.12); }
+.ob-start { width:100%; padding:16px; border-radius:20px; border:none; background:linear-gradient(135deg,var(--orange),var(--orange2)); color:#fff; font-family:var(--font-title); font-size:1.2rem; cursor:pointer; box-shadow:0 6px 22px rgba(249,115,22,.35); transition:transform .18s,box-shadow .18s; margin-top:4px; }
+.ob-start:hover  { transform:translateY(-2px); }
+.ob-start:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+/* ══════════════════════════════════════
+   HOME
+══════════════════════════════════════ */
+#screen-home { overflow-y:auto; -webkit-overflow-scrolling:touch; background:linear-gradient(165deg,#fff7ed,#fef3c7 40%,#ecfdf5); display:flex; flex-direction:column; align-items:center; padding:0 20px calc(var(--bottom-gap) + 8px); }
+.home-hero { width:calc(100% + 40px); margin-left:-20px; background:linear-gradient(180deg,#bfdbfe,#dbeafe 60%,transparent); border-radius:0 0 50% 50%/0 0 28px 28px; padding:34px 20px 26px; text-align:center; flex-shrink:0; position:relative; overflow:hidden; }
+.hero-sun  { position:absolute; top:12px; right:22px; width:54px; height:54px; background:radial-gradient(circle,#fde047 40%,#fef08a44 70%,transparent 100%); border-radius:50%; animation:sunP 4s ease-in-out infinite; }
+.home-avatar { font-size:5rem; display:block; animation:mascotB 3s ease-in-out infinite; cursor:pointer; filter:drop-shadow(0 5px 16px rgba(249,115,22,.2)); margin-bottom:8px; }
+.home-greeting { font-family:var(--font-title); font-size:1.5rem; color:var(--text); }
+.home-greeting span { color:var(--orange); }
+.home-tagline  { font-size:.84rem; font-weight:700; color:var(--muted); margin-top:3px; }
+.sec-title { font-family:var(--font-title); font-size:1.05rem; color:var(--text); margin:20px 0 10px; align-self:flex-start; width:100%; }
+.home-cards { display:flex; flex-direction:column; gap:11px; width:100%; }
+.home-card { background:var(--card); border-radius:var(--radius); padding:16px 18px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 18px rgba(0,0,0,.07); cursor:pointer; border:2.5px solid transparent; transition:all .2s; position:relative; }
+.home-card::after { content:'›'; position:absolute; right:18px; font-size:1.4rem; color:var(--muted); font-weight:900; }
+.home-card:hover,.home-card:active { transform:translateY(-2px); box-shadow:0 8px 26px rgba(0,0,0,.12); }
+.home-card.c-orange { border-color:#fed7aa; background:linear-gradient(135deg,#fff7ed,#ffedd5); }
+.home-card.c-purple { border-color:#ddd6fe; background:linear-gradient(135deg,#f5f3ff,#ede9fe); }
+.home-card.c-green  { border-color:#bbf7d0; background:linear-gradient(135deg,#f0fdf4,#dcfce7); }
+.home-card.c-blue   { border-color:#bfdbfe; background:linear-gradient(135deg,#eff6ff,#dbeafe); }
+.hc-icon  { font-size:2.2rem; flex-shrink:0; }
+.hc-label { font-family:var(--font-title); font-size:1rem; }
+.hc-sub   { font-size:.75rem; font-weight:700; color:var(--muted); margin-top:2px; }
+.home-streak { background:var(--card); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:center; gap:12px; box-shadow:0 4px 14px rgba(0,0,0,.07); width:100%; margin-top:4px; }
+.streak-num { font-family:var(--font-title); font-size:1.5rem; color:var(--orange); margin-left:auto; }
+
+/* ── ACCESSIBILITY QUICK BAR on home ── */
+.a11y-bar { width:100%; background:var(--card); border-radius:var(--radius); padding:14px 16px; box-shadow:0 4px 14px rgba(0,0,0,.07); margin-top:4px; }
+.a11y-bar-title { font-size:.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+.a11y-btns { display:flex; flex-wrap:wrap; gap:8px; }
+.a11y-btn {
+  flex:1; min-width:70px; padding:8px 6px;
+  border:2.5px solid var(--border); border-radius:14px;
+  background:var(--bg); cursor:pointer;
+  font-family:var(--font-main); font-size:.72rem; font-weight:800;
+  color:var(--text); text-align:center; transition:all .18s;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.a11y-btn .a-icon { font-size:1.4rem; }
+.a11y-btn:hover { transform:translateY(-2px); }
+.a11y-btn.on { border-color:var(--orange); background:var(--orange-l); color:var(--orange); }
+
+/* ══════════════════════════════════════
+   WORLD MAP
+══════════════════════════════════════ */
+#screen-world { display:flex; flex-direction:column; background:linear-gradient(180deg,#bfdbfe,#93c5fd 25%,#86efac 60%,#4ade80); overflow:hidden; }
+.topbar { padding:14px 16px 10px; display:flex; align-items:center; gap:10px; flex-shrink:0; z-index:10; }
+.back-btn { background:rgba(255,255,255,.8); border:none; border-radius:50%; width:40px; height:40px; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.12); flex-shrink:0; transition:transform .15s; }
+.back-btn:hover { transform:scale(1.08); }
+.topbar-title { font-family:var(--font-title); font-size:1.2rem; color:#fff; text-shadow:0 2px 6px rgba(0,0,0,.2); flex:1; }
+.stars-pill { background:rgba(255,255,255,.88); border-radius:100px; padding:5px 13px; font-size:.85rem; font-weight:800; color:var(--yellow); display:flex; align-items:center; gap:4px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+.world-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 20px calc(var(--bottom-gap)); }
+.path { display:flex; flex-direction:column; align-items:center; padding-bottom:16px; }
+.node { display:flex; flex-direction:column; align-items:center; cursor:pointer; margin-bottom:6px; }
+.node:nth-child(odd)  { align-self:flex-start; margin-left:24px; }
+.node:nth-child(even) { align-self:flex-end;   margin-right:24px; }
+.node-circle { width:82px; height:82px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2.3rem; box-shadow:0 6px 20px rgba(0,0,0,.18),inset 0 -4px 0 rgba(0,0,0,.12); border:4px solid rgba(255,255,255,.5); transition:transform .2s; position:relative; }
+.node-circle:hover,.node-circle:active { transform:scale(1.1); }
+.node-circle.done { background:linear-gradient(145deg,#4ade80,#22c55e); }
+.node-circle.curr { background:linear-gradient(145deg,#fb923c,#f97316); animation:nodeP 2s ease-in-out infinite; }
+.node-circle.lock { background:linear-gradient(145deg,#d6d3d1,#a8a29e); cursor:not-allowed; filter:grayscale(.4); }
+@keyframes nodeP { 0%,100%{box-shadow:0 6px 20px rgba(249,115,22,.4),inset 0 -4px 0 rgba(0,0,0,.12)} 50%{box-shadow:0 6px 34px rgba(249,115,22,.75),inset 0 -4px 0 rgba(0,0,0,.12)} }
+.node-stars-wrap { position:absolute; top:-16px; display:flex; gap:1px; font-size:.75rem; }
+.node-lbl { margin-top:7px; font-size:.72rem; font-weight:800; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.3); text-align:center; max-width:92px; line-height:1.25; }
+.connector { width:4px; height:38px; background:rgba(255,255,255,.35); border-radius:4px; margin:0 auto; }
+.connector.done { background:rgba(255,255,255,.8); }
+
+/* ══════════════════════════════════════
+   GAME SCREEN
+══════════════════════════════════════ */
+#screen-game { display:flex; flex-direction:column; background:var(--bg); overflow:hidden; }
+.game-bar { padding:12px 16px 10px; display:flex; align-items:center; gap:10px; border-bottom:2px solid var(--border); background:var(--card); flex-shrink:0; z-index:5; }
+.game-bar-info { flex:1; }
+.game-lbl { font-size:.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+.prog-wrap { height:9px; background:var(--border); border-radius:100px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:100px; background:linear-gradient(90deg,var(--orange),var(--orange2)); transition:width .5s ease; }
+
+/* STAGE */
+.stage { flex:0 0 auto; height:clamp(170px,36vh,270px); position:relative; overflow:hidden; }
+.stage-bg { position:absolute; inset:0; transition:background 1.2s ease; }
+.stage-floater { position:absolute; font-size:1.4rem; animation:floatEl 5s ease-in-out infinite; opacity:.7; pointer-events:none; }
+@keyframes floatEl { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-12px) rotate(5deg)} }
+.stage-chars { position:absolute; bottom:0; left:0; right:0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:10px; gap:2px; }
+.s-char { display:flex; flex-direction:column; align-items:center; cursor:pointer; transition:transform .2s; padding:0 5px; }
+.s-char:hover { transform:scale(1.06) translateY(-4px); }
+.s-char .em { font-size:clamp(2.8rem,10vw,4.4rem); line-height:1; animation:cFloat 3s ease-in-out infinite; filter:drop-shadow(0 5px 14px rgba(0,0,0,.14)); }
+.s-char:nth-child(2) .em { animation-delay:-1s; }
+.s-char:nth-child(3) .em { animation-delay:-2s; }
+.s-char:nth-child(4) .em { animation-delay:-1.5s; }
+@keyframes cFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+.s-char .lbl { background:rgba(255,255,255,.92); border-radius:100px; padding:3px 10px; font-size:.66rem; font-weight:800; margin-top:5px; box-shadow:0 2px 6px rgba(0,0,0,.09); }
+.bubble { position:absolute; top:10px; background:var(--card); border-radius:18px; padding:10px 14px; box-shadow:0 4px 18px rgba(0,0,0,.11); max-width:56%; font-size:.84rem; font-weight:700; line-height:1.45; display:none; z-index:5; animation:bPop .35s cubic-bezier(.34,1.56,.64,1) both; }
+.bubble::after { content:''; position:absolute; bottom:-10px; border:10px solid transparent; border-top-color:var(--card); border-bottom:0; }
+.bubble.L { left:12px; } .bubble.L::after { left:16px; }
+.bubble.R { right:12px; } .bubble.R::after { right:16px; }
+.bubble.C { left:50%; transform:translateX(-50%); } .bubble.C::after { left:50%; transform:translateX(-50%); }
+@keyframes bPop { from{opacity:0;transform:scale(.75) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.bubble.C { animation-name:bPopC; }
+@keyframes bPopC { from{opacity:0;transform:translateX(-50%) scale(.75) translateY(8px)} to{opacity:1;transform:translateX(-50%) scale(1) translateY(0)} }
+.stage-emotion { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(255,255,255,.9); border-radius:100px; padding:5px 14px; font-size:.82rem; font-weight:800; box-shadow:0 3px 12px rgba(0,0,0,.1); display:none; z-index:6; white-space:nowrap; }
+
+/* PANEL — scrollable */
+.panel { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; background:var(--card); border-radius:28px 28px 0 0; box-shadow:0 -4px 28px rgba(0,0,0,.09); padding:18px 18px calc(var(--bottom-gap)); }
+
+/* ── SOCIAL RULE BOX (autism/simple mode) ── */
+.social-rule { display:none; background:linear-gradient(135deg,#eff6ff,#dbeafe); border-left:4px solid var(--blue); border-radius:0 14px 14px 0; padding:10px 14px; margin-bottom:14px; font-size:.86rem; font-weight:800; color:#1e40af; line-height:1.5; }
+.social-rule::before { content:'💡 Regola: '; font-weight:900; }
+
+/* ── AAC SYMBOLS strip ── */
+.aac-strip { display:none; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+body.simple .aac-strip { display:flex; }
+.aac-chip { background:var(--bg); border:2px solid var(--border); border-radius:12px; padding:6px 10px; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:.68rem; font-weight:800; color:var(--text); min-width:52px; }
+.aac-chip .aac-sym { font-size:1.5rem; }
+
+.panel-sit { font-size:var(--fs-body); font-weight:700; line-height:1.55; margin-bottom:14px; padding-bottom:14px; border-bottom:2px solid var(--border); }
+.panel-sit .spk { font-size:.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:4px; }
+
+/* ── EMOTION THERMOMETER (for all profiles) ── */
+.thermo-wrap { display:none; margin-bottom:14px; }
+body.simple .thermo-wrap { display:block; }
+.thermo-label { font-size:.75rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
+.thermo-bar   { display:flex; gap:6px; }
+.thermo-step  { flex:1; height:10px; border-radius:100px; background:var(--border); cursor:pointer; transition:all .2s; }
+.thermo-step.active { transform:scaleY(1.5); }
+.thermo-step.t1.active { background:#4ade80; }
+.thermo-step.t2.active { background:#86efac; }
+.thermo-step.t3.active { background:#fde047; }
+.thermo-step.t4.active { background:#fb923c; }
+.thermo-step.t5.active { background:#f87171; }
+.thermo-emoji { display:flex; gap:6px; margin-top:4px; }
+.thermo-emoji span { flex:1; text-align:center; font-size:1.1rem; cursor:pointer; }
+
+/* ACTION BUTTONS */
+.act-grid { display:grid; gap:10px; }
+.act-grid.g2 { grid-template-columns:1fr 1fr; }
+.act-grid.g1 { grid-template-columns:1fr; }
+.act-btn { background:var(--bg); border:2.5px solid var(--border); border-radius:18px; padding:14px 11px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:7px; font-family:var(--font-main); font-size:var(--fs-body); font-weight:800; color:var(--text); text-align:center; line-height:1.3; transition:all .18s; min-height:var(--btn-min); box-shadow:0 2px 8px rgba(0,0,0,.05); position:relative; overflow:hidden; }
+.act-btn .ai { font-size:2rem; line-height:1; }
+/* AAC label under icon */
+.act-btn .aac-lbl { font-size:.62rem; font-weight:800; color:var(--muted); display:none; }
+body.simple .act-btn .aac-lbl { display:block; }
+.act-btn:hover,.act-btn:active { transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,.12); }
+.act-btn.good { border-color:var(--green); background:var(--green-l); animation:aGood .4s ease; }
+.act-btn.bad  { border-color:var(--red);   background:#fef2f2; }
+.act-btn.dim  { opacity:.28; pointer-events:none; }
+@keyframes aGood { 0%{transform:scale(1)} 40%{transform:scale(1.07)} 100%{transform:scale(1)} }
+.cont-btn { display:none; width:100%; margin-top:14px; padding:16px; background:linear-gradient(135deg,var(--orange),var(--orange2)); border:none; border-radius:18px; color:#fff; font-family:var(--font-title); font-size:1.2rem; cursor:pointer; box-shadow:0 5px 18px rgba(249,115,22,.32); transition:transform .18s; }
+.cont-btn:hover { transform:translateY(-2px); }
+.rip { position:absolute; border-radius:50%; background:rgba(0,0,0,.07); transform:scale(0); animation:ripA .5s ease-out; pointer-events:none; }
+@keyframes ripA { to{transform:scale(4);opacity:0} }
+
+/* ══════════════════════════════════════
+   PROFILE
+══════════════════════════════════════ */
+#screen-profile { overflow-y:auto; -webkit-overflow-scrolling:touch; background:linear-gradient(160deg,#f0fdf4,#dcfce7 50%,#fff7ed); display:flex; flex-direction:column; padding-bottom:var(--bottom-gap); }
+.prof-head { text-align:center; padding:26px 20px 16px; }
+.prof-av   { font-size:5rem; display:block; cursor:pointer; animation:mascotB 3s ease-in-out infinite; }
+.prof-name { font-family:var(--font-title); font-size:1.9rem; color:var(--orange); }
+.prof-tag  { font-size:.84rem; font-weight:700; color:var(--muted); margin-top:2px; }
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; padding:0 18px 18px; }
+.s-card { background:var(--card); border-radius:var(--radius); padding:16px 12px; text-align:center; box-shadow:0 4px 14px rgba(0,0,0,.07); }
+.s-num  { font-family:var(--font-title); font-size:2rem; color:var(--orange); }
+.s-lbl  { font-size:.76rem; font-weight:700; color:var(--muted); margin-top:2px; }
+.badges-wrap { padding:0 18px 8px; }
+.badges-wrap h3 { font-family:var(--font-title); font-size:1.15rem; margin-bottom:12px; }
+.badges-grid { display:flex; flex-direction:column; gap:10px; }
+.badge-row { background:var(--card); border-radius:18px; padding:13px 16px; display:flex; align-items:center; gap:12px; box-shadow:0 3px 10px rgba(0,0,0,.06); }
+.badge-row.lk { opacity:.35; filter:grayscale(1); }
+.badge-row .bi { font-size:2rem; flex-shrink:0; }
+.badge-row .bn { font-size:.9rem; font-weight:800; }
+.badge-row .bd { font-size:.74rem; font-weight:600; color:var(--muted); margin-top:2px; }
+
+/* ══════════════════════════════════════
+   BOTTOM NAV
+══════════════════════════════════════ */
+#bnav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:var(--card); border-top:2px solid var(--border); display:flex; padding:8px 0 calc(8px + var(--safe-b)); z-index:300; box-shadow:0 -2px 20px rgba(0,0,0,.08); }
+.nb { flex:1; border:none; background:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; font-family:var(--font-main); font-size:.63rem; font-weight:800; color:var(--muted); transition:color .2s; }
+.nb .ni { font-size:1.45rem; transition:transform .2s; }
+.nb.on { color:var(--orange); }
+.nb.on .ni { transform:scale(1.18); }
+
+/* ══════════════════════════════════════
+   OVERLAYS
+══════════════════════════════════════ */
+#fb-overlay { position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.4); backdrop-filter:blur(4px); pointer-events:none; opacity:0; transition:opacity .3s; }
+#fb-overlay.on { opacity:1; pointer-events:all; }
+.fb-card { background:var(--card); border-radius:28px; padding:26px 22px; text-align:center; box-shadow:0 18px 60px rgba(0,0,0,.22); max-width:360px; width:100%; animation:fbIn .4s cubic-bezier(.34,1.56,.64,1) both; max-height:90vh; overflow-y:auto; }
+@keyframes fbIn { from{transform:scale(.72) translateY(28px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.fb-art   { font-size:4rem; margin-bottom:8px; }
+.fb-title { font-family:var(--font-title); font-size:1.6rem; margin-bottom:8px; }
+.fb-msg   { font-size:var(--fs-body); font-weight:700; color:#57534e; line-height:1.6; }
+.fb-rule  { background:var(--blue-l); border-radius:14px; padding:12px 14px; margin-top:12px; font-size:.85rem; font-weight:800; color:#1e40af; text-align:left; line-height:1.5; display:none; }
+.fb-rule::before { content:'💡 Ricorda: '; font-weight:900; }
+.fb-edu   { background:var(--purple-l); border-radius:14px; padding:12px 14px; margin-top:12px; font-size:.8rem; font-weight:700; color:#5b21b6; text-align:left; line-height:1.55; display:none; }
+.fb-edu strong { display:block; margin-bottom:3px; font-size:.68rem; text-transform:uppercase; letter-spacing:.4px; }
+.fb-ok { margin-top:18px; width:100%; padding:14px; border-radius:16px; border:none; background:linear-gradient(135deg,var(--orange),var(--orange2)); color:#fff; font-family:var(--font-title); font-size:1.1rem; cursor:pointer; box-shadow:0 4px 14px rgba(249,115,22,.28); }
+
+#stars-ov { position:fixed; inset:0; z-index:600; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.52); backdrop-filter:blur(5px); pointer-events:none; opacity:0; transition:opacity .35s; }
+#stars-ov.on { opacity:1; pointer-events:all; }
+.stars-card { background:var(--card); border-radius:32px; padding:32px 24px; text-align:center; box-shadow:0 20px 70px rgba(0,0,0,.25); max-width:340px; width:100%; animation:fbIn .5s cubic-bezier(.34,1.56,.64,1) both; }
+.stars-icon { font-size:3rem; margin-bottom:6px; }
+.stars-name { font-family:var(--font-title); font-size:1.6rem; color:var(--orange); }
+.stars-row  { display:flex; justify-content:center; gap:12px; margin:14px 0; }
+.st { font-size:2.8rem; filter:grayscale(1) opacity(.3); transition:all .4s; }
+.st.on { filter:none; animation:stP .5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes stP { 0%{transform:scale(0)} 60%{transform:scale(1.4)} 100%{transform:scale(1)} }
+.stars-msg  { font-size:.9rem; font-weight:700; color:#78716c; line-height:1.55; margin-bottom:20px; }
+.stars-next { width:100%; padding:14px; border-radius:18px; border:none; background:linear-gradient(135deg,var(--green),var(--green2)); color:#fff; font-family:var(--font-title); font-size:1.1rem; cursor:pointer; box-shadow:0 4px 14px rgba(34,197,94,.3); margin-bottom:10px; }
+.stars-map  { background:none; border:none; color:var(--muted); font-family:var(--font-main); font-size:.88rem; font-weight:700; cursor:pointer; padding:8px; }
+
+/* ── EDU FAB & SHEET ── */
+#edu-fab { position:fixed; bottom:calc(var(--nav-h) + var(--safe-b) + 14px); right:14px; width:50px; height:50px; background:linear-gradient(135deg,var(--purple),var(--purple2)); border:none; border-radius:50%; color:#fff; font-size:1.25rem; cursor:pointer; z-index:300; box-shadow:0 4px 16px rgba(139,92,246,.4); display:none; align-items:center; justify-content:center; transition:transform .2s; }
+#edu-fab.vis { display:flex; }
+#edu-fab:hover { transform:scale(1.1); }
+#edu-sheet { position:fixed; inset:0; z-index:400; background:rgba(0,0,0,.42); display:none; align-items:flex-end; backdrop-filter:blur(3px); }
+#edu-sheet.on { display:flex; }
+.edu-c { background:var(--card); border-radius:28px 28px 0 0; padding:22px 20px calc(28px + var(--safe-b)); width:100%; animation:shUp .35s cubic-bezier(.34,1.56,.64,1) both; max-height:82vh; overflow-y:auto; }
+@keyframes shUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.edu-handle { width:40px; height:4px; background:var(--border); border-radius:4px; margin:0 auto 16px; }
+.edu-c h3 { font-family:var(--font-title); font-size:1.25rem; color:var(--purple); margin-bottom:8px; }
+.edu-c p  { font-size:.88rem; font-weight:700; color:#57534e; line-height:1.65; margin-bottom:12px; }
+.edu-tip  { background:var(--purple-l); border-radius:14px; padding:12px 14px; font-size:.83rem; font-weight:700; color:#5b21b6; line-height:1.5; }
+.edu-tip strong { display:block; margin-bottom:3px; font-size:.7rem; text-transform:uppercase; letter-spacing:.4px; }
+.edu-close { width:100%; margin-top:14px; padding:13px; border:2px solid var(--border); border-radius:16px; background:none; font-family:var(--font-main); font-size:.92rem; font-weight:800; color:var(--muted); cursor:pointer; }
+
+/* ── PROFILE SELECTOR (disability profiles) ── */
+#profile-sheet { position:fixed; inset:0; z-index:450; background:rgba(0,0,0,.5); display:none; align-items:flex-end; backdrop-filter:blur(4px); }
+#profile-sheet.on { display:flex; }
+.profile-sheet-c { background:var(--card); border-radius:28px 28px 0 0; padding:22px 20px calc(28px + var(--safe-b)); width:100%; animation:shUp .35s cubic-bezier(.34,1.56,.64,1) both; max-height:90vh; overflow-y:auto; }
+.profile-sheet-c h3 { font-family:var(--font-title); font-size:1.3rem; color:var(--text); margin-bottom:6px; }
+.profile-sheet-c p  { font-size:.84rem; font-weight:700; color:var(--muted); margin-bottom:16px; line-height:1.5; }
+.profiles-grid { display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+.profile-card { background:var(--bg); border:2.5px solid var(--border); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all .18s; }
+.profile-card:hover,.profile-card:active { transform:translateY(-2px); border-color:var(--orange); }
+.profile-card.selected { border-color:var(--orange); background:var(--orange-l); }
+.profile-card .pc-icon { font-size:2rem; flex-shrink:0; }
+.profile-card .pc-name { font-family:var(--font-title); font-size:1rem; }
+.profile-card .pc-desc { font-size:.75rem; font-weight:700; color:var(--muted); margin-top:2px; line-height:1.4; }
+.profile-sheet-c .ps-close { width:100%; padding:13px; border:2px solid var(--border); border-radius:16px; background:none; font-family:var(--font-main); font-size:.92rem; font-weight:800; color:var(--muted); cursor:pointer; }
+
+/* confetti */
+.cd { position:fixed; border-radius:3px; pointer-events:none; z-index:9999; animation:cdF 1.7s ease-in forwards; }
+@keyframes cdF { 0%{transform:translateY(-10px) rotate(0);opacity:1} 100%{transform:translateY(88vh) rotate(600deg);opacity:0} }
+/* toast */
+#toast { position:fixed; bottom:calc(var(--nav-h) + var(--safe-b) + 12px); left:50%; transform:translateX(-50%) translateY(12px); background:var(--text); color:#fff; padding:12px 22px; border-radius:100px; font-size:.9rem; font-weight:700; box-shadow:0 6px 24px rgba(0,0,0,.22); z-index:800; pointer-events:none; opacity:0; transition:opacity .3s,transform .3s; max-width:86vw; text-align:center; white-space:normal; }
+#toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ ONBOARDING ══ -->
+<div id="screen-onboard" class="screen active">
+  <div class="ob-sky">
+    <div class="ob-sun"></div>
+    <div class="ob-cloud c1"></div>
+    <div class="ob-cloud c2"></div>
+  </div>
+  <span class="ob-mascot" id="ob-mascot" onclick="wiggle('ob-mascot')">🧒</span>
+  <h1 class="ob-title">Il Cuore Grande</h1>
+  <p class="ob-sub">Un'avventura di emozioni e amicizia ❤️</p>
+  <label class="ob-label">Come ti chiami?</label>
+  <input class="ob-input" id="name-input" type="text" placeholder="Scrivi il tuo nome…" maxlength="18" oninput="checkForm()" aria-label="Il tuo nome">
+  <label class="ob-label" style="margin-top:4px">Scegli il tuo personaggio</label>
+  <div class="ob-avatars" id="av-group">
+    <button class="av-btn picked" data-av="🧒" onclick="pickAv(this)" aria-label="Bambino">🧒</button>
+    <button class="av-btn" data-av="👧" onclick="pickAv(this)" aria-label="Bambina">👧</button>
+    <button class="av-btn" data-av="👦" onclick="pickAv(this)" aria-label="Bambino">👦</button>
+    <button class="av-btn" data-av="🧑" onclick="pickAv(this)" aria-label="Ragazzo">🧑</button>
+    <button class="av-btn" data-av="🧒🏽" onclick="pickAv(this)" aria-label="Bambino">🧒🏽</button>
+    <button class="av-btn" data-av="👧🏽" onclick="pickAv(this)" aria-label="Bambina">👧🏽</button>
+  </div>
+  <button class="ob-start" id="ob-start" onclick="startApp()" disabled aria-label="Inizia">Inizia l'avventura! 🚀</button>
+</div>
+
+<!-- ══ HOME ══ -->
+<div id="screen-home" class="screen">
+  <div class="home-hero">
+    <div class="hero-sun"></div>
+    <span class="home-avatar" id="home-av" onclick="wiggle('home-av')">🧒</span>
+    <div class="home-greeting">Ciao, <span id="home-name">Leo</span>! 👋</div>
+    <div class="home-tagline" id="home-tag">Cosa facciamo oggi?</div>
+  </div>
+
+  <div style="width:100%">
+    <div class="sec-title">🎮 Gioca</div>
+    <div class="home-cards">
+      <div class="home-card c-orange" onclick="goTo('world')" role="button" tabindex="0">
+        <span class="hc-icon">🗺️</span>
+        <div><div class="hc-label">Esplora il mondo</div><div class="hc-sub">Avventure di emozioni e amicizia</div></div>
+      </div>
+      <div class="home-card c-purple" onclick="goTo('profile')" role="button" tabindex="0">
+        <span class="hc-icon">⭐</span>
+        <div><div class="hc-label">Il mio profilo</div><div class="hc-sub">Stelle, medaglie e progressi</div></div>
+      </div>
+    </div>
+
+    <div class="sec-title">♿ Accessibilità</div>
+    <!-- Quick accessibility toggles -->
+    <div class="a11y-bar">
+      <div class="a11y-bar-title">Personalizza l'app per te</div>
+      <div class="a11y-btns">
+        <button class="a11y-btn" id="btn-simple"   onclick="toggleMode('simple')"   aria-pressed="false"><span class="a-icon">🧩</span>Semplice</button>
+        <button class="a11y-btn" id="btn-bigtext"  onclick="toggleMode('bigtext')"  aria-pressed="false"><span class="a-icon">🔠</span>Testo grande</button>
+        <button class="a11y-btn" id="btn-hc"       onclick="toggleMode('hc')"       aria-pressed="false"><span class="a-icon">🌓</span>Alto contrasto</button>
+        <button class="a11y-btn" id="btn-dyslexia" onclick="toggleMode('dyslexia')" aria-pressed="false"><span class="a-icon">📖</span>Dislessia</button>
+        <button class="a11y-btn" id="btn-no-motion"onclick="toggleMode('no-motion')"aria-pressed="false"><span class="a-icon">⏸️</span>No animazioni</button>
+      </div>
+    </div>
+
+    <div class="sec-title">👨‍👩‍👧 Genitore / Educatore</div>
+    <div class="home-cards">
+      <div class="home-card c-green" id="edu-card" onclick="toggleEdu()" role="button" tabindex="0">
+        <span class="hc-icon">🎓</span>
+        <div><div class="hc-label" id="edu-lbl">Modalità Educatore</div><div class="hc-sub">Note psicologiche ad ogni scena</div></div>
+      </div>
+      <div class="home-card c-blue" onclick="openProfileSheet()" role="button" tabindex="0">
+        <span class="hc-icon">🧠</span>
+        <div><div class="hc-label">Profilo del bambino</div><div class="hc-sub" id="profile-sub">Nessun profilo selezionato</div></div>
+      </div>
+    </div>
+
+    <div class="sec-title">📊 Progressi</div>
+    <div class="home-streak">
+      <span style="font-size:2rem">🔥</span>
+      <div style="font-size:.84rem;font-weight:800">Giorni di gioco consecutivi</div>
+      <div class="streak-num" id="streak-num">1</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WORLD ══ -->
+<div id="screen-world" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('home')" aria-label="Torna home">←</button>
+    <div class="topbar-title">🗺️ Il Mondo</div>
+    <div class="stars-pill">⭐ <span id="stars-world">0</span></div>
+  </div>
+  <div class="world-scroll"><div class="path" id="path"></div></div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div id="screen-game" class="screen">
+  <div class="game-bar">
+    <button class="back-btn" onclick="goTo('world')" aria-label="Torna alla mappa">←</button>
+    <div class="game-bar-info">
+      <div class="game-lbl" id="g-lbl">Scena 1</div>
+      <div class="prog-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div class="prog-fill" id="g-prog" style="width:0%"></div></div>
+    </div>
+    <div style="font-size:.8rem;font-weight:800;color:var(--muted)" id="g-stars">⭐ 0</div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="stage-bg" id="s-bg"></div>
+    <div id="s-floaters"></div>
+    <div class="stage-emotion" id="s-emotion"></div>
+    <div class="bubble L" id="bL"></div>
+    <div class="bubble R" id="bR"></div>
+    <div class="bubble C" id="bC"></div>
+    <div class="stage-chars" id="s-chars"></div>
+  </div>
+  <div class="panel" id="panel">
+    <div class="social-rule" id="social-rule"></div>
+    <div class="aac-strip" id="aac-strip"></div>
+    <div class="thermo-wrap" id="thermo-wrap">
+      <div class="thermo-label">Come si sente? Tocca la barra</div>
+      <div class="thermo-bar">
+        <div class="thermo-step t1" onclick="setThermo(1)"></div>
+        <div class="thermo-step t2" onclick="setThermo(2)"></div>
+        <div class="thermo-step t3" onclick="setThermo(3)"></div>
+        <div class="thermo-step t4" onclick="setThermo(4)"></div>
+        <div class="thermo-step t5" onclick="setThermo(5)"></div>
+      </div>
+      <div class="thermo-emoji"><span onclick="setThermo(1)">😄</span><span onclick="setThermo(2)">🙂</span><span onclick="setThermo(3)">😐</span><span onclick="setThermo(4)">😟</span><span onclick="setThermo(5)">😢</span></div>
+    </div>
+    <div class="panel-sit" id="p-sit"></div>
+    <div class="act-grid" id="act-grid"></div>
+    <button class="cont-btn" id="cont-btn">Continua →</button>
+  </div>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div id="screen-profile" class="screen">
+  <div class="topbar" style="background:transparent">
+    <button class="back-btn" onclick="goTo('home')" style="background:rgba(255,255,255,.7)" aria-label="Torna home">←</button>
+    <div class="topbar-title" style="color:var(--text)">Il mio profilo</div>
+  </div>
+  <div class="prof-head">
+    <span class="prof-av" id="prof-av" onclick="wiggle('prof-av')">🧒</span>
+    <div class="prof-name" id="prof-name">Leo</div>
+    <div class="prof-tag"  id="prof-tag">Cuore in crescita 🌱</div>
+  </div>
+  <div class="stats-grid">
+    <div class="s-card"><div class="s-num" id="p-stars">0</div><div class="s-lbl">⭐ Stelle</div></div>
+    <div class="s-card"><div class="s-num" id="p-lvls">0</div><div class="s-lbl">🏅 Livelli</div></div>
+    <div class="s-card"><div class="s-num" id="p-kind">0</div><div class="s-lbl">💛 Gesti gentili</div></div>
+    <div class="s-card"><div class="s-num" id="p-days">1</div><div class="s-lbl">📅 Giorni</div></div>
+  </div>
+  <div class="badges-wrap">
+    <h3>🎖️ Medaglie</h3>
+    <div class="badges-grid" id="badges-grid"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- Bottom nav -->
+<div id="bnav" role="navigation" aria-label="Navigazione principale">
+  <button class="nb on" id="nb-home"    onclick="goTo('home')"   aria-label="Home"><span class="ni">🏠</span>Home</button>
+  <button class="nb"    id="nb-world"   onclick="goTo('world')"  aria-label="Gioca"><span class="ni">🗺️</span>Gioca</button>
+  <button class="nb"    id="nb-profile" onclick="goTo('profile')" aria-label="Profilo"><span class="ni">⭐</span>Profilo</button>
+</div>
+
+<button id="edu-fab" onclick="openEdu()" aria-label="Note per educatori">🎓</button>
+
+<!-- Edu sheet -->
+<div id="edu-sheet" onclick="if(event.target===this)closeEdu()" role="dialog" aria-modal="true" aria-label="Note per educatori">
+  <div class="edu-c">
+    <div class="edu-handle"></div>
+    <h3>🎓 <span id="edu-t">Per educatori</span></h3>
+    <p id="edu-b"></p>
+    <div class="edu-tip"><strong>💡 Prova a casa</strong><span id="edu-tip"></span></div>
+    <button class="edu-close" onclick="closeEdu()">Chiudi</button>
+  </div>
+</div>
+
+<!-- Disability profile selector -->
+<div id="profile-sheet" onclick="if(event.target===this)closeProfileSheet()" role="dialog" aria-modal="true">
+  <div class="profile-sheet-c">
+    <div class="edu-handle"></div>
+    <h3>🧠 Profilo del bambino</h3>
+    <p>Scegli il profilo più adatto: l'app si adatterà automaticamente al modo migliore per comunicare e insegnare.</p>
+    <div class="profiles-grid" id="profiles-grid"></div>
+    <button class="ps-close" onclick="closeProfileSheet()">Fatto ✓</button>
+  </div>
+</div>
+
+<!-- Feedback overlay -->
+<div id="fb-overlay" role="dialog" aria-modal="true" aria-live="assertive">
+  <div class="fb-card">
+    <div class="fb-art"   id="fb-art"></div>
+    <div class="fb-title" id="fb-title"></div>
+    <div class="fb-msg"   id="fb-msg"></div>
+    <div class="fb-rule"  id="fb-rule"></div>
+    <div class="fb-edu"   id="fb-edu"></div>
+    <button class="fb-ok" onclick="closeFb()">Capito! ✨</button>
+  </div>
+</div>
+
+<!-- Stars celebration -->
+<div id="stars-ov" role="dialog" aria-modal="true">
+  <div class="stars-card">
+    <div class="stars-icon" id="st-icon">🎉</div>
+    <div class="stars-name" id="st-name"></div>
+    <div class="stars-row"  id="st-row" aria-label="Stelle guadagnate"></div>
+    <div class="stars-msg"  id="st-msg"></div>
+    <button class="stars-next" id="st-next">Prossimo →</button>
+    <button class="stars-map"  onclick="closeStars();goTo('world')">Torna alla mappa</button>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ══════════════════════════════════
+// DISABILITY PROFILES
+// ══════════════════════════════════
+const PROFILES = [
+  {
+    id:'none', icon:'👤', name:'Nessun profilo',
+    desc:'Versione standard dell\'app',
+    modes:[]
+  },
+  {
+    id:'down', icon:'💛', name:'Sindrome di Down',
+    desc:'Testo più grande, immagini simboliche, feedback positivo potenziato, regole sociali esplicite',
+    modes:['bigtext','simple']
+  },
+  {
+    id:'autism', icon:'🧩', name:'Disturbo dello Spettro Autistico',
+    desc:'Regole sociali esplicite, simboli AAC, termometro delle emozioni, struttura prevedibile',
+    modes:['simple','no-motion']
+  },
+  {
+    id:'adhd', icon:'⚡', name:'ADHD',
+    desc:'Animazioni ridotte, scelte semplificate, feedback immediato e molto visivo',
+    modes:['no-motion','bigtext']
+  },
+  {
+    id:'dyslexia', icon:'📖', name:'Dislessia',
+    desc:'Font speciale ad alta leggibilità, spaziatura aumentata, testo ridotto',
+    modes:['dyslexia','bigtext']
+  },
+  {
+    id:'lowvision', icon:'👁️', name:'Ipovisione',
+    desc:'Alto contrasto, testo molto grande, icone ingrandite',
+    modes:['hc','bigtext']
+  },
+  {
+    id:'cognitive', icon:'🌱', name:'Difficoltà cognitive generali',
+    desc:'Modalità massima semplificazione: 1-2 scelte, simboli grandi, regole chiare',
+    modes:['simple','bigtext','no-motion']
+  },
+];
+
+// ══════════════════════════════════
+// LEVELS DATA
+// ══════════════════════════════════
+const LEVELS = [
+  {
+    id:0, name:'Al parco dopo la pioggia', icon:'🌧️', col:'#3b82f6',
+    edu:'Riconoscere le emozioni altrui è la radice dell\'empatia. La tristezza si legge sul corpo, non solo sul viso. Con bambini con bisogni speciali, nominate ad alta voce le emozioni ogni volta che le incontrate.',
+    tip:'Sfogliate insieme un libro illustrato. Per ogni faccia: "Come si sente? Come lo sai?" Raccogliete le risposte senza giudicarle.',
+    scenes:[
+      {
+        bg:'linear-gradient(180deg,#93c5fd 0%,#bfdbfe 40%,#bbf7d0 80%,#86efac 100%)',
+        floaters:['🌧️','💧','🌿'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'👦',n:'Sami'}],
+        bub:{side:'R',text:'Ho perso il mio pallone nel fiume… era il mio preferito.'},
+        emotion:'😢 Sami è triste',
+        socialRule:'Quando qualcuno ha la testa bassa e le spalle curve, di solito è triste.',
+        aac:[{sym:'😢',lbl:'Triste'},{sym:'🪑',lbl:'Panchina'},{sym:'🌧️',lbl:'Pioggia'},{sym:'⚽',lbl:'Pallone'}],
+        sit:'Sami è seduto su una panchina bagnata. La pioggia ha appena smesso. Tiene la testa bassa. [nome] passa di lì e lo nota.',
+        spk:'[nome] guarda Sami e pensa…',
+        actions:[
+          {i:'😢',l:'Capisce che Sami è triste',aac:'Triste',good:true, fb:{art:'💙',t:'Sì! Hai visto con il cuore.',m:'Sami non ha detto una parola, ma il suo corpo parlava. Guardare davvero le persone è il primo dono.',rule:'Testa bassa + spalle curve = probabilmente triste.',edu:'Il linguaggio del corpo porta il 70% del messaggio emotivo. Allenatevi a "leggere" le persone.'}},
+          {i:'😐',l:'Non ci fa caso e passa oltre',aac:'Ignora',good:false,fb:{art:'🔍',t:'Guarda più da vicino…',m:'Sami aveva la testa bassa, le spalle curve. Il corpo ci parla sempre.',rule:'Dobbiamo guardare le persone per capire come si sentono.',edu:'Guardate insieme foto e descrivete cosa comunica il corpo, non solo la faccia.'}},
+          {i:'🤩',l:'Pensa che stia riposando',aac:'Riposa',good:false,fb:{art:'💭',t:'Hmm…',m:'Quando riposiamo, il viso è rilassato. Quello di Sami aveva qualcosa di diverso.',rule:'Riposare e essere tristi sembrano diversi sul viso.',edu:'Insegnate la differenza tra stanchezza e tristezza con esempi concreti.'}},
+        ]
+      },
+      {
+        bg:'linear-gradient(180deg,#a5f3fc 0%,#bfdbfe 40%,#bbf7d0 80%,#86efac 100%)',
+        floaters:['☀️','🌈','🌿'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'👦',n:'Sami'}],
+        bub:{side:'L',text:'Cosa posso fare per Sami?'},
+        emotion:'💛 [nome] vuole aiutare',
+        socialRule:'Quando un amico è triste, possiamo stare vicino a lui o dirgli una parola gentile.',
+        aac:[{sym:'🫂',lbl:'Abbraccio'},{sym:'💬',lbl:'Parlare'},{sym:'🪑',lbl:'Sedersi'},{sym:'🏃',lbl:'Andare'}],
+        sit:'[nome] vuole far sentire Sami meno solo. Cosa fa?',
+        spk:'[nome] decide…',
+        actions:[
+          {i:'🪑',l:'Si siede vicino a lui in silenzio',aac:'Sedersi',good:true, fb:{art:'🌟',t:'La presenza vale più delle parole!',m:'Sedersi accanto a qualcuno triste dice "ci sono". È uno dei gesti più potenti.',rule:'Stare vicino a qualcuno triste è un gesto di cura.',edu:'La presenza silenziosa è una forma avanzata di empatia. Allenatela in famiglia.'}},
+          {i:'💬',l:'"Ci penso io, troveremo un altro!"',aac:'Parlare',good:true, fb:{art:'🤝',t:'[nome] offre speranza!',m:'Le parole che aprono possibilità fanno sentire meno soli.',rule:'Dire "ci pensiamo insieme" aiuta chi è triste.',edu:'Insegnate frasi di conforto: "ci pensiamo insieme", "non sei solo".'}},
+          {i:'🏃',l:'Va a giocare da solo',aac:'Via',good:false,fb:{art:'💭',t:'E Sami rimane solo…',m:'Un piccolo gesto avrebbe fatto una grande differenza.',rule:'Quando qualcuno è triste, non dobbiamo lasciarlo solo.',edu:'Collegate alla vita reale: "C\'è mai stato qualcuno che ti ha visto quando eri triste?"'}},
+          {i:'😂',l:'Cerca di farlo ridere subito',aac:'Ridere',good:false,fb:{art:'🤔',t:'Prima ascolta, poi fai ridere.',m:'Le barzellette possono aiutare, ma solo dopo aver ascoltato.',rule:'Prima ascoltiamo, poi possiamo far ridere.',edu:'L\'umorismo è potente se usato al momento giusto.'}},
+        ]
+      }
+    ]
+  },
+  {
+    id:1, name:'La festa di Mia', icon:'🎂', col:'#ec4899',
+    edu:'L\'inclusione attiva richiede riconoscere chi è escluso e fare un passo concreto. Il role-play è il metodo più efficace per allenare questa competenza.',
+    tip:'Giocate al "detective dell\'inclusione": in un cartone animato, cercate chi sembra solo. Poi simulate insieme cosa fare.',
+    scenes:[
+      {
+        bg:'linear-gradient(180deg,#fdf2f8 0%,#fce7f3 40%,#fbcfe8 80%,#f9a8d4 100%)',
+        floaters:['🎈','🎂','🌸','✨'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'👧',n:'Mia'},{e:'👦',n:'Luca'},{e:'🧒🏽',n:'Rami'}],
+        bub:{side:'R',text:'Rami è in un angolo… forse non conosce nessuno.'},
+        emotion:'🎉 Festa in corso',
+        socialRule:'Quando qualcuno è solo in un angolo e guarda gli altri giocare, probabilmente vorrebbe unirsi.',
+        aac:[{sym:'👤',lbl:'Solo'},{sym:'👋',lbl:'Invitare'},{sym:'🎮',lbl:'Giocare'},{sym:'🤷',lbl:'Ignorare'}],
+        sit:'È il compleanno di Mia. Musica, palloncini, dolci. Ma Rami è in un angolo, guarda gli altri e non sa come entrare.',
+        spk:'[nome] si accorge di Rami…',
+        actions:[
+          {i:'👋',l:'Va da Rami: "Vieni a giocare con noi!"',aac:'Invita',good:true, fb:{art:'🌈',t:'Un invito cambia tutto!',m:'Rami aspettava solo che qualcuno lo vedesse davvero.',rule:'Se qualcuno è solo, possiamo invitarlo a giocare con noi.',edu:'Costruite insieme la frase da usare: "La prossima volta che vedi qualcuno da solo, puoi dire…"'}},
+          {i:'🎮',l:'Va a giocare con gli altri',aac:'Via',good:false,fb:{art:'💭',t:'Rami ti ha visto vederlo…',m:'Notare qualcuno ed ignorarlo può fare più male che non accorgersi affatto.',rule:'Se vediamo qualcuno solo e ce ne andiamo, lui si sente ancora più solo.',edu:'Il momento in cui si "quasi aiuta" è prezioso: "Cosa ti ha fermato?"'}},
+          {i:'🤷',l:'Pensa: forse vuole stare solo',aac:'Aspetta',good:false,fb:{art:'🔍',t:'Osserva ancora…',m:'La sua postura, gli occhi che seguono gli altri… Rami vuole partecipare.',rule:'Quando qualcuno guarda gli altri giocare, di solito vuole partecipare.',edu:'Insegnate a distinguere "ho scelto di stare solo" da "sono solo e vorrei compagnia".'}},
+        ]
+      },
+      {
+        bg:'linear-gradient(180deg,#fdf2f8 0%,#fce7f3 40%,#fbcfe8 80%,#f9a8d4 100%)',
+        floaters:['🎈','⭐','🎉'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'🧒🏽',n:'Rami'},{e:'👧',n:'Mia'}],
+        bub:{side:'L',text:'Grazie… non conoscevo nessuno. Sono contento che tu sia venuto.'},
+        emotion:'🥹 Rami sorride',
+        socialRule:'Quando aiutiamo qualcuno, dentro di noi ci sentiamo bene. Questo si chiama "calore del cuore".',
+        aac:[{sym:'😊',lbl:'Felice'},{sym:'💛',lbl:'Calore'},{sym:'🏆',lbl:'Vanto'},{sym:'😐',lbl:'Normale'}],
+        sit:'Rami sorride per la prima volta. Come si sente [nome] dopo aver aiutato?',
+        spk:'[nome] sente dentro di sé…',
+        actions:[
+          {i:'💛',l:'Si sente felice di aver aiutato',aac:'Felice',good:true, fb:{art:'💛',t:'Aiutare fa bene anche a chi aiuta!',m:'C\'è una gioia speciale nell\'aver fatto del bene. Si chiama "calore del cuore".',rule:'Quando facciamo del bene, ci sentiamo felici dentro.',edu:'Nominate questa sensazione: "Ti ricordi quando hai aiutato qualcuno? Cosa hai sentito?"'}},
+          {i:'😐',l:'Niente di speciale, era normale',aac:'Normale',good:false,fb:{art:'💜',t:'È normale E meraviglioso!',m:'Fare del bene può sembrare normale, ma è una scelta ogni volta.',rule:'Ogni gesto gentile è una scelta speciale, anche se sembra normale.',edu:'Non sminuite i gesti buoni: "Era ovvio" toglie valore alla scelta.'}},
+          {i:'🏆',l:'Vuole che tutti sappiano',aac:'Vantarsi',good:false,fb:{art:'🤔',t:'Il bene fatto in silenzio vale di più…',m:'Aiutare per essere lodati è diverso da aiutare perché si vuole bene all\'altro.',rule:'Il bene più bello è quello che facciamo anche quando nessuno ci guarda.',edu:'Discutete la differenza tra aiutare per gli altri e aiutare per sé.'}},
+        ]
+      }
+    ]
+  },
+  {
+    id:2, name:'Il segreto di Lena', icon:'🤫', col:'#8b5cf6',
+    edu:'I bambini devono sapere che possono parlare con un adulto di tutto ciò che sentono. Questo è particolarmente importante per bambini con SD o ASD, che possono avere difficoltà a comunicare il disagio.',
+    tip:'Create un "momento del cuore" fisso ogni giorno: una cosa bella e una difficile della giornata. Ascoltate senza giudicare.',
+    scenes:[
+      {
+        bg:'linear-gradient(180deg,#f5f3ff 0%,#ede9fe 50%,#ddd6fe 100%)',
+        floaters:['🌙','⭐','🌸'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'👧',n:'Lena'}],
+        bub:{side:'R',text:'Ho qualcosa che mi pesa… ma ho paura a dirlo.'},
+        emotion:'😟 Lena ha un peso',
+        socialRule:'Quando qualcuno dice "ho paura a dirlo", ha bisogno di sentirsi al sicuro per parlare.',
+        aac:[{sym:'👂',lbl:'Ascoltare'},{sym:'🤝',lbl:'Aiutare'},{sym:'🏃',lbl:'Scappare'},{sym:'😬',lbl:'Minimizzare'}],
+        sit:'Lena e [nome] sono sul tetto-terrazzo, di notte. Le stelle brillano. Lena ha qualcosa che la fa stare male.',
+        spk:'[nome] ascolta Lena…',
+        actions:[
+          {i:'👂',l:'"Puoi dirmelo. Ti ascolto."',aac:'Ascolta',good:true, fb:{art:'💜',t:'[nome] apre uno spazio sicuro!',m:'Dire "ti ascolto" senza ancora sapere cosa è già un regalo enorme.',rule:'Quando qualcuno ha paura di parlare, diciamo: "Ti ascolto, puoi dirmelo".',edu:'L\'ascolto attivo inizia prima di ascoltare: postura, contatto visivo, silenzio.'}},
+          {i:'🤝',l:'"Qualunque cosa sia, non sei sola"',aac:'Aiuta',good:true, fb:{art:'🌟',t:'Queste parole cambiano tutto!',m:'"Non sei sola" è forse la frase più potente che possiamo dire.',rule:'"Non sei sola/solo" è una delle frasi più importanti.',edu:'Fate memorizzare ai vostri figli: "ci sono", "ti ascolto", "non sei solo/a".'}},
+          {i:'😬',l:'"Dai, non sarà niente di grave"',aac:'No',good:false,fb:{art:'🔍',t:'Sminuire fa male…',m:'Quando qualcuno minimizza quello che sentiamo, ci chiudiamo.',rule:'Non diciamo mai "non è niente" a chi ci vuole raccontare qualcosa.',edu:'Insegnate a NON usare "non è niente", "ci sono cose peggiori".'}},
+          {i:'🏃',l:'Se ne va',aac:'Via',good:false,fb:{art:'💭',t:'Lena rimarrà sola…',m:'Allontanarsi da chi soffre fa molto male.',rule:'Quando qualcuno ci ha bisogno, non dobbiamo scappare.',edu:'Discussione: "Quando è difficile ascoltare qualcuno? Cosa ci spaventa?"'}},
+        ]
+      },
+      {
+        bg:'linear-gradient(180deg,#f5f3ff 0%,#ede9fe 50%,#ddd6fe 100%)',
+        floaters:['🌙','💫','🔒'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'👧',n:'Lena'}],
+        bub:{side:'R',text:'Mi ha chiesto di tenere un segreto ma mi fa stare male tenerlo.'},
+        emotion:'⚠️ Attenzione',
+        socialRule:'I segreti che ci fanno stare male NON vanno tenuti. Dobbiamo dirli a un adulto fidato.',
+        aac:[{sym:'🗣️',lbl:'Parlare'},{sym:'🤐',lbl:'Tacere'},{sym:'🤷',lbl:'Aspettare'},{sym:'🛡️',lbl:'Protegge'}],
+        sit:'Qualcuno le ha chiesto di non dire niente a nessuno, adulti compresi. Ma questo segreto la fa stare male. Cosa consiglia [nome]?',
+        spk:'[nome] pensa a cosa dire…',
+        actions:[
+          {i:'🗣️',l:'"I segreti che fanno stare male si dicono a un adulto fidato."',aac:'Parla',good:true, fb:{art:'🛡️',t:'[nome] protegge Lena!',m:'I segreti buoni fanno sorridere. Quelli cattivi fanno stare male.',rule:'Segreto buono = fa sorridere. Segreto cattivo = fa stare male → si dice a un adulto.',edu:'Questa è una delle lezioni di sicurezza più importanti.'}},
+          {i:'🤐',l:'"Hai promesso, devi mantenerlo"',aac:'Taci',good:false,fb:{art:'❌',t:'Questa regola non vale sempre!',m:'Le promesse si mantengono, ma non quando ci fanno stare male.',rule:'Non dobbiamo mantenere le promesse che ci fanno stare male.',edu:'Insegnate la differenza esplicita tra segreto buono e segreto cattivo.'}},
+          {i:'🤷',l:'"Non lo so, aspetta che passa"',aac:'Aspetta',good:false,fb:{art:'💭',t:'I pesi soli diventano più pesanti…',m:'Aspettare non aiuta. Parlare con qualcuno di fiducia alleggerisce sempre.',rule:'I problemi che aspettiamo da soli diventano più pesanti.',edu:'Nei bambini con SD e ASD la tendenza a non comunicare il disagio può essere più marcata.'}},
+        ]
+      }
+    ]
+  },
+  {
+    id:3, name:'La gara di corsa', icon:'🏃', col:'#22c55e',
+    edu:'La gestione della sconfitta è cruciale. I bambini imparano osservando come gli adulti reagiscono alle proprie difficoltà. Modellate la reazione sana davanti a loro.',
+    tip:'Quando giocate insieme e uno perde, nominate le emozioni ad alta voce: "Hai vinto tu! Io ho perso, mi dispiace un po\'. Ma è stato divertente!"',
+    scenes:[
+      {
+        bg:'linear-gradient(180deg,#fef9c3 0%,#fef08a 30%,#bbf7d0 70%,#86efac 100%)',
+        floaters:['🏃','💨','🌿','☀️'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'👦',n:'Sami'},{e:'👧',n:'Mia'}],
+        bub:{side:'R',text:'Ho vinto! Ho vinto!'},
+        emotion:'🏆 Mia ha vinto',
+        socialRule:'Perdere fa sentire delusi. È normale. Possiamo essere tristi E fare i complimenti a chi ha vinto.',
+        aac:[{sym:'🤝',lbl:'Complimenti'},{sym:'😤',lbl:'Arrabbiato'},{sym:'🎉',lbl:'Festeggiare'},{sym:'😶',lbl:'Silenzio'}],
+        sit:'C\'era una gara di corsa. Mia ha vinto. Sami è arrivato secondo. [nome] terzo. Sami sembra deluso. Come reagisce [nome]?',
+        spk:'[nome] guarda Sami e decide…',
+        actions:[
+          {i:'🤝',l:'Va da Sami: "Hai corso benissimo!"',aac:'Complimenti',good:true, fb:{art:'🌟',t:'[nome] vede oltre il risultato!',m:'Riconoscere lo sforzo di Sami aiuta a non misurare il proprio valore solo dalla vittoria.',rule:'Possiamo fare i complimenti anche quando siamo delusi.',edu:'Insegnate a lodare lo sforzo: "Hai corso forte" vale più di "peccato".'}},
+          {i:'😤',l:'"Non è giusto, lei ha barato!"',aac:'Arrabbiato',good:false,fb:{art:'🔍',t:'La rabbia è normale, ma…',m:'Accusare senza prove fa del male a Mia.',rule:'Quando siamo arrabbiati, diciamo "sono arrabbiato" invece di accusare.',edu:'Insegnate a nominare la rabbia: "Sono arrabbiato perché volevo vincere".'}},
+          {i:'🎉',l:'Festeggia con Mia entusiasta',aac:'Festeggia',good:true, fb:{art:'💛',t:'[nome] sa essere felice per gli altri!',m:'Essere contenti per la vittoria altrui, anche quando si è delusi, è un superpotere emotivo.',rule:'Possiamo essere felici per gli altri anche quando noi abbiamo perso.',edu:'La "gioia per l\'altro" si allena. Celebrate insieme le vittorie altrui.'}},
+        ]
+      },
+      {
+        bg:'linear-gradient(180deg,#fef9c3 0%,#fef08a 30%,#bbf7d0 70%,#86efac 100%)',
+        floaters:['🌈','☀️','🌸'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'👦',n:'Sami'}],
+        bub:{side:'L',text:'Mi sento un po\' triste perché volevo vincere…'},
+        emotion:'😔 Sami si sfoga',
+        socialRule:'Quando qualcuno dice come si sente, la cosa migliore è dire "capisco" e stargli vicino.',
+        aac:[{sym:'🫂',lbl:'Capisco'},{sym:'💪',lbl:'Forza'},{sym:'😄',lbl:'Futuro'},{sym:'😶',lbl:'Silenzio'}],
+        sit:'Sami confessa a [nome] che è un po\' triste per la sconfitta. Come risponde [nome]?',
+        spk:'[nome] risponde a Sami…',
+        actions:[
+          {i:'🫂',l:'"È normale. Anch\'io mi sarei sentito uguale."',aac:'Capisco',good:true, fb:{art:'💜',t:'[nome] valida il dolore di Sami!',m:'Dire "capisco" e "anch\'io mi sarei sentito così" fa sentire normale, non debole.',rule:'"È normale sentirsi tristi quando perdiamo."',edu:'La validazione emotiva rispetta l\'emozione invece di cercare di cancellarla.'}},
+          {i:'💪',l:'"Non essere triste, sei forte!"',aac:'Forza',good:false,fb:{art:'🤔',t:'Quasi…',m:'"Non essere triste" dice a Sami che la sua tristezza è sbagliata.',rule:'Non diciamo "non essere triste". Diciamo "capisco che sei triste".',edu:'Sostituite "non essere triste" con "vedo che sei triste".'}},
+          {i:'😄',l:'"La prossima volta vinciamo!"',aac:'Futuro',good:false,fb:{art:'💭',t:'Prima il presente…',m:'Guardare avanti è utile, ma prima Sami ha bisogno di sentirsi capito.',rule:'Prima ascoltiamo il dolore di adesso, poi guardiamo avanti insieme.',edu:'La sequenza: 1) Ascolta e valida. 2) Poi, se è il momento, guarda avanti.'}},
+        ]
+      }
+    ]
+  },
+  {
+    id:4, name:'Il robot e il cuore', icon:'🤖', col:'#14b8a6',
+    edu:'Le differenze individuali vanno presentate come variazioni naturali. I bambini con SD spesso hanno una sensibilità empatica naturalmente elevata: valorizzatela come talento.',
+    tip:'Leggete insieme storie con protagonisti diversi. Chiedete: "Cosa rende speciale questo personaggio?" Guidateli ai punti di forza.',
+    scenes:[
+      {
+        bg:'linear-gradient(180deg,#ccfbf1 0%,#99f6e4 40%,#5eead4 80%,#2dd4bf 100%)',
+        floaters:['🤖','💡','⚙️','✨'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'🧒🏽',n:'Rami'},{e:'🤖',n:'Robo'}],
+        bub:{side:'R',text:'Non capisco perché le persone piangono. Io non ho emozioni.'},
+        emotion:'🤔 Robo vuole capire',
+        socialRule:'Le emozioni sono messaggi dentro di noi. Ci dicono cosa ci importa.',
+        aac:[{sym:'❤️',lbl:'Emozioni'},{sym:'😢',lbl:'Tristezza'},{sym:'🎭',lbl:'Mostrare'},{sym:'🤷',lbl:'Non so'}],
+        sit:'[nome] e Rami trovano Robo, un robot curioso. Robo vuole capire cosa sono le emozioni. Come glielo spiegano?',
+        spk:'[nome] pensa a come spiegarlo…',
+        actions:[
+          {i:'❤️',l:'"Le emozioni sono messaggi che ci dicono cosa ci importa"',aac:'Spiega',good:true, fb:{art:'✨',t:'Una spiegazione meravigliosa!',m:'Le emozioni come "messaggi" è una metafora potente.',rule:'Le emozioni ci dicono cosa amiamo e cosa ci fa paura.',edu:'Aiutate i bambini a vedere le emozioni come informazioni utili.'}},
+          {i:'🎭',l:'"Ti mostro!" (fa le facce)',aac:'Mostra',good:true, fb:{art:'🌟',t:'Mostrare è meglio che spiegare!',m:'"Ti mostro" invece di "ti spiego". Le emozioni si riconoscono meglio vedendole.',rule:'Possiamo spiegare le emozioni mostrando le facce.',edu:'Il gioco del "fare le facce" è potente. Fatelo spesso davanti allo specchio.'}},
+          {i:'😢',l:'"Le emozioni fanno solo piangere"',aac:'Negativo',good:false,fb:{art:'🌈',t:'Non solo…',m:'Esistono anche gioia, entusiasmo, tenerezza, meraviglia.',rule:'Le emozioni non sono solo tristezza. Ci sono tante emozioni belle!',edu:'Lavorate su un vocabolario emotivo ampio: più parole hanno, più le capiscono.'}},
+        ]
+      },
+      {
+        bg:'linear-gradient(180deg,#ccfbf1 0%,#99f6e4 40%,#5eead4 80%,#2dd4bf 100%)',
+        floaters:['🌈','❤️','✨','💛'],
+        chars:[{e:'🧒',n:'[nome]'},{e:'🧒🏽',n:'Rami'},{e:'🤖',n:'Robo'}],
+        bub:{side:'R',text:'Capisco! Siete tutti diversi, ma tutti connessi dalle emozioni.'},
+        emotion:'🌈 Robo capisce',
+        socialRule:'Essere diversi non significa avere qualcosa che non va. Ogni persona è speciale a modo suo.',
+        aac:[{sym:'🌍',lbl:'Diversi'},{sym:'❤️',lbl:'Connessi'},{sym:'🤖',lbl:'Uguale'}],
+        sit:'Robo ha capito. Qual è la cosa più importante che [nome] vuole che Robo ricordi?',
+        spk:'[nome] dice a Robo…',
+        actions:[
+          {i:'🌍',l:'"Essere diversi è la cosa più bella del mondo"',aac:'Diversi',good:true, fb:{art:'🌈',t:'Questo è il cuore di tutto!',m:'Le differenze sono la ricchezza più grande.',rule:'Essere diversi è bello. Le differenze ci rendono più ricchi.',edu:'La diversità non è un problema da risolvere ma una risorsa da celebrare.'}},
+          {i:'❤️',l:'"Le emozioni ci connettono tutti"',aac:'Connetti',good:true, fb:{art:'💛',t:'Robo sorride per la prima volta!',m:'L\'empatia travalica le differenze. Anche Robo lo ha capito.',rule:'Le emozioni ci uniscono anche quando siamo molto diversi.',edu:'La capacità di connettere si costruisce insieme, ogni giorno.'}},
+          {i:'🤖',l:'"I robot non possono capire"',aac:'No',good:false,fb:{art:'💜',t:'Guarda Robo negli occhi…',m:'Robo ha passato l\'ultima mezz\'ora ad imparare. Ha già capito più di quanto sembri.',rule:'Non sottovalutiamo mai la capacità di capire degli altri.',edu:'Non sottovalutate la comprensione. Chi sembra "diverso" capisce spesso molto di più.'}},
+        ]
+      }
+    ]
+  },
+];
+
+const BADGES = [
+  {id:'b0',icon:'👀',name:'Occhi Aperti',      desc:'Hai imparato a vedere le emozioni', req:0},
+  {id:'b1',icon:'🎈',name:'Arcobaleno di Feste',desc:'Hai incluso qualcuno che era solo',  req:1},
+  {id:'b2',icon:'🛡️',name:'Guardiano del Cuore',desc:'Hai protetto un amico',               req:2},
+  {id:'b3',icon:'🏃',name:'Spirito Sportivo',  desc:'Hai imparato dalla sconfitta',         req:3},
+  {id:'b4',icon:'🌈',name:'Il Cuore Grande',   desc:'Hai completato tutte le avventure!',   req:4},
+];
+
+// ══════════════════════
+// STATE
+// ══════════════════════
+let S = {
+  name:'Leo', av:'🧒', eduMode:false,
+  progress:{}, stars:0, kindness:0, days:1, badges:[],
+  activeProfile:'none',
+  modes:[], // active accessibility modes
+};
+
+function load() { try { const d=localStorage.getItem('hcg4'); if(d) Object.assign(S,JSON.parse(d)); } catch(e){} }
+function save() { try { localStorage.setItem('hcg4',JSON.stringify(S)); } catch(e){} }
+
+// ══════════════════════
+// ACCESSIBILITY MODES
+// ══════════════════════
+function applyModes() {
+  const all = ['simple','bigtext','hc','dyslexia','no-motion'];
+  all.forEach(m => {
+    document.body.classList.toggle(m, S.modes.includes(m));
+    const btn = document.getElementById('btn-'+m);
+    if(btn) { btn.classList.toggle('on', S.modes.includes(m)); btn.setAttribute('aria-pressed', S.modes.includes(m)); }
+  });
+}
+
+function toggleMode(mode) {
+  const idx = S.modes.indexOf(mode);
+  if(idx > -1) S.modes.splice(idx,1);
+  else S.modes.push(mode);
+  applyModes(); save();
+  toast(S.modes.includes(mode) ? `✅ ${modeLabel(mode)} attivata` : `${modeLabel(mode)} disattivata`);
+}
+
+function modeLabel(m) {
+  return {simple:'Modalità semplice',bigtext:'Testo grande',hc:'Alto contrasto',dyslexia:'Font dislessia','no-motion':'No animazioni'}[m]||m;
+}
+
+// ══════════════════════
+// DISABILITY PROFILES
+// ══════════════════════
+function openProfileSheet() {
+  const grid = document.getElementById('profiles-grid');
+  grid.innerHTML = '';
+  PROFILES.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'profile-card' + (S.activeProfile===p.id?' selected':'');
+    el.innerHTML = `<span class="pc-icon">${p.icon}</span><div><div class="pc-name">${p.name}</div><div class="pc-desc">${p.desc}</div></div>`;
+    el.onclick = () => selectProfile(p.id, el);
+    grid.appendChild(el);
+  });
+  document.getElementById('profile-sheet').classList.add('on');
+}
+
+function selectProfile(id, el) {
+  document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  S.activeProfile = id;
+  const profile = PROFILES.find(p=>p.id===id);
+  S.modes = [...(profile.modes||[])];
+  applyModes(); save();
+  document.getElementById('profile-sub').textContent = profile.name;
+  toast(`🧠 Profilo: ${profile.name}`);
+}
+
+function closeProfileSheet() { document.getElementById('profile-sheet').classList.remove('on'); }
+
+// ══════════════════════
+// ONBOARDING
+// ══════════════════════
+let pickedAv = '🧒';
+function pickAv(btn) {
+  document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('picked'));
+  btn.classList.add('picked'); pickedAv = btn.dataset.av;
+  document.getElementById('ob-mascot').textContent = pickedAv;
+  checkForm();
+}
+function checkForm() {
+  const n = document.getElementById('name-input').value.trim();
+  document.getElementById('ob-start').disabled = n.length < 2;
+}
+function startApp() {
+  const n = document.getElementById('name-input').value.trim();
+  if(n.length < 2) return;
+  S.name = n; S.av = pickedAv; save();
+  setupHome(); goTo('home');
+}
+
+// ══════════════════════
+// HOME
+// ══════════════════════
+function setupHome() {
+  document.getElementById('home-av').textContent   = S.av;
+  document.getElementById('home-name').textContent = S.name;
+  document.getElementById('streak-num').textContent= S.days;
+  const done = Object.values(S.progress).filter(p=>p.done).length;
+  const tags = ['Cosa facciamo oggi? 😊','Il tuo cuore è pronto! ❤️','Nuove avventure ti aspettano! 🌟'];
+  document.getElementById('home-tag').textContent  = tags[Math.min(done,tags.length-1)];
+  document.getElementById('edu-lbl').textContent   = S.eduMode ? '✅ Educatore Attivo' : 'Modalità Educatore';
+  const p = PROFILES.find(x=>x.id===S.activeProfile);
+  document.getElementById('profile-sub').textContent = p ? p.name : 'Nessun profilo';
+  applyModes();
+}
+function toggleEdu() {
+  S.eduMode = !S.eduMode; save();
+  document.getElementById('edu-lbl').textContent = S.eduMode ? '✅ Educatore Attivo' : 'Modalità Educatore';
+  toast(S.eduMode ? '🎓 Modalità Educatore attivata!' : 'Modalità bambino attivata');
+}
+
+// ══════════════════════
+// NAVIGATION
+// ══════════════════════
+function goTo(sc) {
+  ['screen-home','screen-profile','screen-onboard'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.scrollTop=0;
+  });
+  const prev = document.querySelector('.screen.active');
+  if(prev){ prev.classList.add('exit'); setTimeout(()=>prev.classList.remove('exit','active'),400); }
+  const next = document.getElementById('screen-'+sc);
+  next.classList.add('active');
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  const nb = document.getElementById('nb-'+sc); if(nb) nb.classList.add('on');
+  document.getElementById('edu-fab').classList.toggle('vis', sc==='game');
+  if(sc==='world')   renderWorld();
+  if(sc==='game')    renderGame();
+  if(sc==='profile') renderProfile();
+  if(sc==='home')    setupHome();
+}
+
+// ══════════════════════
+// WORLD MAP
+// ══════════════════════
+function renderWorld() {
+  document.getElementById('stars-world').textContent = S.stars;
+  const path = document.getElementById('path'); path.innerHTML='';
+  LEVELS.forEach((lv,i) => {
+    if(i>0){
+      const conn=document.createElement('div');
+      conn.className='connector'+(S.progress[LEVELS[i-1].id]?.done?' done':'');
+      path.appendChild(conn);
+    }
+    const node=document.createElement('div'); node.className='node';
+    const p=S.progress[lv.id]||{};
+    const done=p.done, curr=!done&&(i===0||S.progress[LEVELS[i-1]?.id]?.done), lock=!done&&!curr;
+    const circ=document.createElement('div');
+    circ.className='node-circle '+(done?'done':curr?'curr':'lock');
+    circ.style.background=done?'linear-gradient(145deg,#4ade80,#22c55e)':curr?`linear-gradient(145deg,${lv.col},${lv.col}cc)`:'linear-gradient(145deg,#d6d3d1,#a8a29e)';
+    if(done&&p.stars){ const sw=document.createElement('div'); sw.className='node-stars-wrap'; for(let j=0;j<3;j++)sw.innerHTML+=j<p.stars?'⭐':'☆'; circ.appendChild(sw); }
+    circ.innerHTML+=(lock?'🔒':lv.icon);
+    const lbl=document.createElement('div'); lbl.className='node-lbl'; lbl.textContent=lv.name;
+    node.setAttribute('aria-label', lv.name + (lock?' — bloccato':done?' — completato':' — disponibile'));
+    node.setAttribute('role','button'); node.setAttribute('tabindex',lock?'-1':'0');
+    node.appendChild(circ); node.appendChild(lbl);
+    if(!lock){ node.onclick=()=>startLevel(i); node.onkeydown=e=>{if(e.key==='Enter')startLevel(i);} }
+    path.appendChild(node);
+  });
+}
+
+// ══════════════════════
+// GAME
+// ══════════════════════
+let curLv=0, curSc=0;
+function startLevel(li){ curLv=li; curSc=0; goTo('game'); }
+function nm(s){ return s.replace(/\[nome\]/g,S.name); }
+
+function renderGame() {
+  const lv=LEVELS[curLv], sc=lv.scenes[curSc];
+  document.getElementById('edu-t').textContent = lv.name+' — Per educatori';
+  document.getElementById('edu-b').textContent  = lv.edu;
+  document.getElementById('edu-tip').textContent= lv.tip;
+  document.getElementById('g-lbl').textContent  = `${lv.icon} ${lv.name} · Scena ${curSc+1}/${lv.scenes.length}`;
+  document.getElementById('g-prog').style.width = ((curSc/lv.scenes.length)*100)+'%';
+  document.getElementById('g-stars').textContent= '⭐ '+S.stars;
+  document.getElementById('s-bg').style.background = sc.bg;
+
+  const fl=document.getElementById('s-floaters'); fl.innerHTML='';
+  (sc.floaters||[]).forEach((f,i)=>{ const d=document.createElement('div'); d.className='stage-floater'; d.textContent=f; d.style.cssText=`left:${8+i*22}%;bottom:${28+Math.random()*22}%;animation-delay:${i*.8}s`; fl.appendChild(d); });
+
+  const etag=document.getElementById('s-emotion');
+  if(sc.emotion){ etag.textContent=nm(sc.emotion); etag.style.display='block'; } else etag.style.display='none';
+
+  ['bL','bR','bC'].forEach(id=>document.getElementById(id).style.display='none');
+  if(sc.bub){ const bid=sc.bub.side==='L'?'bL':sc.bub.side==='C'?'bC':'bR'; const bel=document.getElementById(bid); bel.textContent=nm(sc.bub.text); bel.style.display='block'; }
+
+  const sc2=document.getElementById('s-chars'); sc2.innerHTML='';
+  sc.chars.forEach((c)=>{ const d=document.createElement('div'); d.className='s-char'; d.innerHTML=`<div class="em">${c.e}</div><div class="lbl">${nm(c.n)}</div>`; d.onclick=()=>{ const em=d.querySelector('.em'); em.style.transform='scale(1.28) rotate(12deg)'; setTimeout(()=>em.style.transform='',380); }; sc2.appendChild(d); });
+
+  // social rule (simple/autism mode)
+  const sr=document.getElementById('social-rule');
+  if(sc.socialRule){ sr.textContent=sc.socialRule; } else { sr.textContent=''; }
+
+  // AAC strip
+  const aacStrip=document.getElementById('aac-strip'); aacStrip.innerHTML='';
+  (sc.aac||[]).forEach(a=>{ const chip=document.createElement('div'); chip.className='aac-chip'; chip.innerHTML=`<span class="aac-sym">${a.sym}</span>${a.lbl}`; aacStrip.appendChild(chip); });
+
+  // thermometer
+  document.querySelectorAll('.thermo-step').forEach(s=>s.classList.remove('active'));
+
+  const panel=document.getElementById('panel'); panel.scrollTop=0;
+  document.getElementById('p-sit').innerHTML=`<span class="spk">${nm(sc.spk||'')}</span>${nm(sc.sit)}`;
+
+  const grid=document.getElementById('act-grid'); grid.innerHTML='';
+  // In simple mode, limit to 3 actions max
+  const actionsToShow = document.body.classList.contains('simple') ? sc.actions.slice(0,3) : sc.actions;
+  grid.className='act-grid '+(actionsToShow.length<=3?'g1':'g2');
+  document.getElementById('cont-btn').style.display='none';
+
+  actionsToShow.forEach(a=>{
+    const btn=document.createElement('button'); btn.className='act-btn';
+    btn.setAttribute('aria-label', a.l);
+    btn.innerHTML=`<span class="ai">${a.i}</span><span>${nm(a.l)}</span><span class="aac-lbl">${a.aac||''}</span>`;
+    btn.onclick=(e)=>handleAct(btn,a,e,grid);
+    grid.appendChild(btn);
+  });
+}
+
+function setThermo(n) {
+  document.querySelectorAll('.thermo-step').forEach((s,i)=>{ s.classList.toggle('active',i<n); });
+}
+
+let afterFb=null;
+function handleAct(btn,a,e,grid){
+  const rect=btn.getBoundingClientRect();
+  const rip=document.createElement('div'); rip.className='rip';
+  const sz=btn.offsetWidth*2;
+  rip.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px`;
+  btn.appendChild(rip);
+  grid.querySelectorAll('.act-btn').forEach(b=>{b.classList.add('dim');b.onclick=null;});
+  btn.classList.remove('dim'); btn.classList.add(a.good?'good':'bad');
+  if(a.good){ S.kindness++; spawnConf(); save(); }
+  document.getElementById('fb-art').textContent   = a.fb.art;
+  document.getElementById('fb-title').textContent = nm(a.fb.t);
+  document.getElementById('fb-msg').textContent   = nm(a.fb.m);
+  const ruleEl=document.getElementById('fb-rule');
+  if(a.fb.rule){ ruleEl.textContent=a.fb.rule; ruleEl.style.display=document.body.classList.contains('simple')?'block':'none'; } else ruleEl.style.display='none';
+  const eduEl=document.getElementById('fb-edu');
+  if(S.eduMode&&a.fb.edu){ eduEl.style.display='block'; eduEl.innerHTML=`<strong>🎓 Per l'educatore</strong>${a.fb.edu}`; } else eduEl.style.display='none';
+  document.getElementById('fb-overlay').classList.add('on');
+  afterFb=()=>advance(a.good);
+}
+
+function closeFb(){ document.getElementById('fb-overlay').classList.remove('on'); if(afterFb){afterFb();afterFb=null;} }
+
+function advance(good){
+  const lv=LEVELS[curLv]; curSc++;
+  if(curSc<lv.scenes.length) renderGame(); else finishLevel(good);
+}
+
+function finishLevel(good){
+  const lv=LEVELS[curLv], p=S.progress[lv.id]||{}, ns=good?3:2, delta=Math.max(0,ns-(p.stars||0));
+  S.stars+=delta; S.progress[lv.id]={done:true,stars:Math.max(p.stars||0,ns)};
+  const b=BADGES.find(b=>b.req===lv.id&&!S.badges.includes(b.id)); if(b) S.badges.push(b.id);
+  if(S.badges.length>=BADGES.length-1&&!S.badges.includes('b4')) S.badges.push('b4');
+  save(); showStars(lv,ns);
+}
+
+function showStars(lv,n){
+  document.getElementById('st-icon').textContent=lv.icon;
+  document.getElementById('st-name').textContent=lv.name;
+  const row=document.getElementById('st-row'); row.innerHTML='';
+  for(let i=0;i<3;i++){ const s=document.createElement('div'); s.className='st'; s.textContent='⭐'; row.appendChild(s); if(i<n)setTimeout(()=>s.classList.add('on'),300+i*220); }
+  const msgs=[`${S.name}, sei straordinario! ❤️`,'Ogni gesto gentile conta! 🌟','Il tuo cuore cresce ogni giorno! 🌱','Sei un campione di empatia! 🏆'];
+  document.getElementById('st-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+  const ni=curLv+1, nb=document.getElementById('st-next');
+  if(ni<LEVELS.length){ nb.textContent='Prossima avventura →'; nb.onclick=()=>{closeStars();startLevel(ni);} }
+  else { nb.textContent='🎉 Complimenti, hai finito!'; nb.onclick=()=>{closeStars();goTo('profile');} }
+  document.getElementById('stars-ov').classList.add('on');
+  spawnConf(); setTimeout(spawnConf,300); setTimeout(spawnConf,600);
+}
+function closeStars(){ document.getElementById('stars-ov').classList.remove('on'); }
+
+// ══════════════════════
+// PROFILE
+// ══════════════════════
+function renderProfile(){
+  document.getElementById('prof-av').textContent = S.av;
+  document.getElementById('prof-name').textContent = S.name;
+  const done=Object.values(S.progress).filter(p=>p.done).length;
+  const tags=['Cuore in crescita 🌱','Empatia in fiore 🌸','Campione di gentilezza 🏆'];
+  document.getElementById('prof-tag').textContent = tags[Math.min(done,tags.length-1)];
+  document.getElementById('p-stars').textContent = S.stars;
+  document.getElementById('p-lvls').textContent  = done;
+  document.getElementById('p-kind').textContent  = S.kindness;
+  document.getElementById('p-days').textContent  = S.days;
+  const grid=document.getElementById('badges-grid'); grid.innerHTML='';
+  BADGES.forEach(b=>{ const earned=S.badges.includes(b.id); const el=document.createElement('div'); el.className='badge-row'+(earned?'':' lk'); el.innerHTML=`<span class="bi">${b.icon}</span><div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div></div>${earned?'<span style="margin-left:auto">✅</span>':''}`; grid.appendChild(el); });
+}
+
+// ══════════════════════
+// EDU
+// ══════════════════════
+function openEdu(){ document.getElementById('edu-sheet').classList.add('on'); }
+function closeEdu(){ document.getElementById('edu-sheet').classList.remove('on'); }
+
+// ══════════════════════
+// CONFETTI
+// ══════════════════════
+const CC=['#f97316','#22c55e','#3b82f6','#ec4899','#eab308','#8b5cf6','#14b8a6'];
+function spawnConf(){
+  if(document.body.classList.contains('no-motion')) return;
+  for(let i=0;i<22;i++){ setTimeout(()=>{ const d=document.createElement('div'); d.className='cd'; const sz=5+Math.random()*9; d.style.cssText=`width:${sz}px;height:${sz}px;left:${5+Math.random()*90}vw;top:-20px;background:${CC[Math.floor(Math.random()*CC.length)]};animation-delay:${Math.random()*.5}s;animation-duration:${1.3+Math.random()*.8}s`; document.body.appendChild(d); setTimeout(()=>d.remove(),2500); },i*35); }
+}
+
+// ══════════════════════
+// TOAST
+// ══════════════════════
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2600); }
+
+// ══════════════════════
+// WIGGLE
+// ══════════════════════
+function wiggle(id){ const el=document.getElementById(id); if(!el)return; el.style.transform='scale(1.3) rotate(15deg)'; setTimeout(()=>el.style.transform='',380); }
+
+// ══════════════════════
+// KEYBOARD NAV
+// ══════════════════════
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape'){
+    closeEdu(); closeProfileSheet();
+    document.getElementById('fb-overlay').classList.remove('on');
+    closeStars();
+  }
+});
+
+// ══════════════════════
+// INIT
+// ══════════════════════
+load();
+const today=new Date().toDateString();
+if(localStorage.getItem('hcg4_day')!==today){ S.days=Math.max(1,(S.days||1)+(localStorage.getItem('hcg4_day')?1:0)); localStorage.setItem('hcg4_day',today); save(); }
+if(S.name&&S.name!=='Leo'&&localStorage.getItem('hcg4')){ setupHome(); document.getElementById('screen-onboard').classList.remove('active'); document.getElementById('screen-home').classList.add('active'); }
+applyModes();
+</script>
+</body>
+</html>
